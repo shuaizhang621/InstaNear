@@ -1,13 +1,20 @@
 import React from 'react';
-import { WrappedRegister } from './Register';
+import { Register } from './Register';
 import { Login } from './Login';
+import { Switch, Route } from 'react-router'
+
 
 export class Main extends React.Component {
     render() {
         return (
-            <section className="main">
-                <Login/>
-            </section>
+            <div className="main">
+                <Switch>
+                    <Route exact path="/" component={Login}/>
+                    <Route path="/login" component={Login}/>
+                    <Route path="/register" component={Register}/>
+                    <Route component={Login}/>
+                </Switch>
+            </div>
         )
     }
 }
