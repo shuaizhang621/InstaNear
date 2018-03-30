@@ -2,14 +2,17 @@ import React from 'react';
 import { Tabs, Button, Spin } from 'antd';
 import {API_ROOT, GEO_OPTIONS, AUTH_PREFIX, TOKEN_KEY} from "../constants"
 import $ from 'jquery';
+import { Gallery } from './Gallary';
 
 const TabPane = Tabs.TabPane;
 
 export class Home extends React.Component {
 
     state = {
+        loadingPosts: false,
         loadingGeoLocation: false,
         error: '',
+        posts: [],
     }
 
     getGeoLocation = () => {
@@ -49,7 +52,21 @@ export class Home extends React.Component {
             return <div>{this.state.error}</div>
         } else if (this.state.loadingGeoLocation) {
             return <Spin tip="Loading..."/>
-        } else {
+        } else if (this.state.loadingPosts) {
+            return <Spin tip="Loading Posts..."/>
+        } else if (this.state.posts && this.state.posts.length > 0) {
+            const images = this.state.posts.map((post) => {
+                return {
+                    user: post.user,
+                    src: post.url,
+                    thumbnail: post.url,
+                    thumbnailWidth: 400,
+                    thumbnailHeight: 300,
+                    caption: post.message,
+                }
+            });
+            return <Gallery images={images}/>;
+        } else{
             return <div>content</div>
         }
     }
@@ -57,6 +74,7 @@ export class Home extends React.Component {
     loadNearbyPosts = (position) => {
         const lat = 37.7915953; 
         const lon = -122.3937977;
+        this.setState({ loadingPosts: true });
         $.ajax({
             url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=20`,
             method: 'GET',
@@ -65,8 +83,10 @@ export class Home extends React.Component {
             }
         }).then((response) => {
             console.log(response);
+            this.setState({ posts: response, loadingPosts: false, error: '' });
         }, (error) => {
             console.log(error);
+            this.setState({ loadingPosts: false, error: error.responseText });
         }).catch((error) => {
             console.log(error);
         });
