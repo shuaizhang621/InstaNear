@@ -1,6 +1,8 @@
 import React from 'react';
 import { Tabs, Button, Spin } from 'antd';
-import {GEO_OPTIONS} from "../constants"
+import {API_ROOT, GEO_OPTIONS, AUTH_PREFIX, TOKEN_KEY} from "../constants"
+import $ from 'jquery';
+
 const TabPane = Tabs.TabPane;
 
 export class Home extends React.Component {
@@ -29,6 +31,7 @@ export class Home extends React.Component {
         const lat = 37.7915953; 
         const lon = -122.3937977;
         localStorage.setItem('POS_KEY', JSON.stringify({ lat, lon }));
+        this.loadNearbyPosts(position);
     }
 
     onFailedLoadGeolocation = () => {
@@ -50,6 +53,25 @@ export class Home extends React.Component {
             return <div>content</div>
         }
     }
+
+    loadNearbyPosts = (position) => {
+        const lat = 37.7915953; 
+        const lon = -122.3937977;
+        $.ajax({
+            url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=20`,
+            method: 'GET',
+            headers: {
+                Authorization: `${AUTH_PREFIX} ${localStorage.getItem(TOKEN_KEY)}`
+            }
+        }).then((response) => {
+            console.log(response);
+        }, (error) => {
+            console.log(error);
+        }).catch((error) => {
+            console.log(error);
+        });
+    }
+
 
     render() {
         const operations = <Button type="primary">Create New Post</Button>;
