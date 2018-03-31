@@ -1,8 +1,9 @@
 import React from 'react';
 import { Tabs, Button, Spin } from 'antd';
-import {API_ROOT, GEO_OPTIONS, AUTH_PREFIX, TOKEN_KEY} from "../constants"
+import {API_ROOT, GEO_OPTIONS, AUTH_PREFIX, TOKEN_KEY} from "../constants";
 import $ from 'jquery';
 import { Gallery } from './Gallary';
+import { CreatePostButton } from "./CreatePostButton";
 
 const TabPane = Tabs.TabPane;
 
@@ -31,15 +32,15 @@ export class Home extends React.Component {
         console.log(position);
         //const {latitude, longitude} = position.coords;
         this.setState({ loadingGeoLocation: false, error: '' });
-        const lat = 37.7915953; 
-        const lon = -122.3937977;
+        const lat = 37.535623;
+        const lon = -122.26956;
         localStorage.setItem('POS_KEY', JSON.stringify({ lat, lon }));
         this.loadNearbyPosts(position);
     }
 
     onFailedLoadGeolocation = () => {
         this.setState({ loadingGeoLocation: false, error: 'Fail to load geo location!'});
-        console.log('fail to get geolocaiton')
+        console.log('Fail to get geolocaiton')
     }
 
     componentDidMount() {
@@ -51,7 +52,7 @@ export class Home extends React.Component {
         if (this.state.error) {
             return <div>{this.state.error}</div>
         } else if (this.state.loadingGeoLocation) {
-            return <Spin tip="Loading..."/>
+            return <Spin tip="Loading Geolocation"/>
         } else if (this.state.loadingPosts) {
             return <Spin tip="Loading Posts..."/>
         } else if (this.state.posts && this.state.posts.length > 0) {
@@ -72,8 +73,10 @@ export class Home extends React.Component {
     }
 
     loadNearbyPosts = (position) => {
-        const lat = 37.7915953; 
-        const lon = -122.3937977;
+        // const lat = 37.7915953; 
+        // const lon = -122.3937977;
+        const lat = 37.535623;
+        const lon = -122.26956;
         this.setState({ loadingPosts: true });
         $.ajax({
             url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=20`,
@@ -94,7 +97,7 @@ export class Home extends React.Component {
 
 
     render() {
-        const operations = <Button type="primary">Create New Post</Button>;
+        const operations = <CreatePostButton/>//<Button type="primary">Create New Post</Button>;
         return (
             <Tabs tabBarExtraContent={operations} className="main-tabs">
                 <TabPane tab="Posts" key="1">
