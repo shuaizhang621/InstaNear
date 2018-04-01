@@ -78,26 +78,28 @@ export class Home extends React.Component {
         const lat = 37.535623;
         const lon = -122.26956;
         this.setState({ loadingPosts: true });
-        $.ajax({
-            url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=20`,
-            method: 'GET',
-            headers: {
-                Authorization: `${AUTH_PREFIX} ${localStorage.getItem(TOKEN_KEY)}`
-            }
-        }).then((response) => {
-            console.log(response);
-            this.setState({ posts: response, loadingPosts: false, error: '' });
-        }, (error) => {
-            console.log(error);
-            this.setState({ loadingPosts: false, error: error.responseText });
-        }).catch((error) => {
-            console.log(error);
-        });
+        return (
+            $.ajax({
+                url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=20`,
+                method: 'GET',
+                headers: {
+                    Authorization: `${AUTH_PREFIX} ${localStorage.getItem(TOKEN_KEY)}`
+                }
+            }).then((response) => {
+                console.log(response);
+                this.setState({ posts: response, loadingPosts: false, error: '' });
+            }, (error) => {
+                console.log(error);
+                this.setState({ loadingPosts: false, error: error.responseText });
+            }).catch((error) => {
+                console.log(error);
+            })
+        );
     }
 
 
     render() {
-        const operations = <CreatePostButton/>//<Button type="primary">Create New Post</Button>;
+        const operations = <CreatePostButton loadNearbyPosts={this.loadNearbyPosts}/>//<Button type="primary">Create New Post</Button>;
         return (
             <Tabs tabBarExtraContent={operations} className="main-tabs">
                 <TabPane tab="Posts" key="1">

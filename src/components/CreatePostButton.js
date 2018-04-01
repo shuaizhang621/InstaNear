@@ -1,6 +1,9 @@
 import React from 'react';
-import { Modal, Button } from 'antd';
-import { WrappedCreatePostForm } from "./CreatePostForm";
+import $ from 'jquery';
+import { Modal, Button, message } from 'antd';
+import { WrappedCreatePostForm } from './CreatePostForm';
+import { API_ROOT, AUTH_PREFIX, POS_KEY, TOKEN_KEY } from '../constants';
+
 
 export class CreatePostButton extends React.Component {
     state = {
@@ -14,23 +17,58 @@ export class CreatePostButton extends React.Component {
         });
     }
     handleOk = () => {
-        this.setState({
-            ModalText: 'The modal will be closed after two seconds',
-            confirmLoading: true,
+        this.form.validateFields((err, values) => {
+            if (!err) {
+                const { lat, lon } = JSON.parse(localStorage.getItem(POS_KEY));
+                const formData = new FormData();
+                formData.set('lat', lat);
+                formData.set('lon', lon);
+                formData.set('message', values.message);
+                formData.set('image', values.image[0]);
+
+                this.setState({
+                    confirmLoading: true,
+                });
+
+                $.ajax({
+                    url: `${API_ROOT}/post`,
+                    method: 'POST',
+                    data: formData,
+                    headers: {
+                        Authorization: `${AUTH_PREFIX} ${localStorage.getItem(TOKEN_KEY)}`,
+                    },
+                    processData: false,
+                    contentType: false,
+                    dataType: 'text',
+                }).then((response) => {
+                    message.success('created a post successfully.');
+                }, (error) => {
+                    message.error(error.responseText);
+                }).then(() => {
+                    this.form.resetFields();
+                    this.props.loadNearbyPosts().then(() => {
+                        this.setState({ visible: false, confirmLoading: false });
+                    });
+                }).catch((error) => {
+                    message.error('create post failed')
+                    console.log(error);
+                });
+            }
         });
-        setTimeout(() => {
-            this.setState({
-                visible: false,
-                confirmLoading: false,
-            });
-        }, 2000);
+
     }
+
     handleCancel = () => {
         console.log('Clicked cancel button');
         this.setState({
             visible: false,
         });
     }
+
+    saveFormRef = (form) => {
+        this.form = form;
+    }
+
     render() {
         const { visible, confirmLoading, ModalText } = this.state;
         return (
@@ -43,7 +81,7 @@ export class CreatePostButton extends React.Component {
                        confirmLoading={confirmLoading}
                        onCancel={this.handleCancel}
                 >
-                    <WrappedCreatePostForm/>
+                    <WrappedCreatePostForm ref={this.saveFormRef}/>
                 </Modal>
             </div>
         );
