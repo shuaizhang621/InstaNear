@@ -1,9 +1,10 @@
 import React from 'react';
 import { Tabs, Button, Spin } from 'antd';
-import {API_ROOT, GEO_OPTIONS, AUTH_PREFIX, TOKEN_KEY} from "../constants";
+import { API_ROOT, GEO_OPTIONS, AUTH_PREFIX, TOKEN_KEY, POS_KEY } from "../constants";
 import $ from 'jquery';
 import { Gallery } from './Gallary';
 import { CreatePostButton } from "./CreatePostButton";
+import { WrapAroundMap} from "./AroundMap";
 
 const TabPane = Tabs.TabPane;
 
@@ -23,8 +24,8 @@ export class Home extends React.Component {
                 this.onFailedLoadGeolocation,
                 GEO_OPTIONS,
             );
-        } else {
-            /*geolocaiton IS NOT available*/
+            } else {
+            this.setState({ error: 'Your browser does not support geolocation!'});
         }
     }
 
@@ -32,10 +33,10 @@ export class Home extends React.Component {
         console.log(position);
         //const {latitude, longitude} = position.coords;
         this.setState({ loadingGeoLocation: false, error: '' });
-        const lat = 37.535623;
-        const lon = -122.26956;
-        localStorage.setItem('POS_KEY', JSON.stringify({ lat, lon }));
-        this.loadNearbyPosts(position);
+        const { latitude: lat, longitude: lon } = position.coords;
+        const location = { lat: lat, lon: lon };
+        localStorage.setItem(POS_KEY, JSON.stringify(location));
+        this.loadNearbyPosts(location);
     }
 
     onFailedLoadGeolocation = () => {
@@ -72,15 +73,13 @@ export class Home extends React.Component {
         }
     }
 
-    loadNearbyPosts = (position) => {
-        // const lat = 37.7915953; 
-        // const lon = -122.3937977;
-        const lat = 37.535623;
-        const lon = -122.26956;
+    loadNearbyPosts = (location, radius) => {
+        const { lat, lon } = location ? location : JSON.parse(localStorage.getItem(POS_KEY));
+        const range = radius ? radius : 20;
         this.setState({ loadingPosts: true });
         return (
             $.ajax({
-                url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=20`,
+                url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=${range}`,
                 method: 'GET',
                 headers: {
                     Authorization: `${AUTH_PREFIX} ${localStorage.getItem(TOKEN_KEY)}`
@@ -99,13 +98,20 @@ export class Home extends React.Component {
 
 
     render() {
-        const operations = <CreatePostButton loadNearbyPosts={this.loadNearbyPosts}/>//<Button type="primary">Create New Post</Button>;
+        const operations = <CreatePostButton loadNearbyPosts={this.loadNearbyPosts}/>
         return (
             <Tabs tabBarExtraContent={operations} className="main-tabs">
                 <TabPane tab="Posts" key="1">
                     {this.getGalleryPanelContent()}
                 </TabPane>
-                <TabPane tab="Map" key="2">Map</TabPane>
+                <TabPane tab="Map" key="2">
+                    <WrapAroundMap
+                        googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyC4R6AN7SmujjPUIGKdyao2Kqitzr1kiRg&v=3.exp&libraries=geometry,drawing,places"
+                        loadingElement={<div style={{ height: `100%` }} />}
+                        containerElement={<div style={{ height: `400px` }} />}
+                        mapElement={<div style={{ height: `100%` }} />}
+                    />
+                </TabPane>
             </Tabs>
         );
     }
