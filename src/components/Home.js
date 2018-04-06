@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tabs, Button, Spin } from 'antd';
+import { Tabs, Spin } from 'antd';
 import { API_ROOT, GEO_OPTIONS, AUTH_PREFIX, TOKEN_KEY, POS_KEY } from "../constants";
 import $ from 'jquery';
 import { Gallery } from './Gallary';
@@ -106,10 +106,12 @@ export class Home extends React.Component {
                 </TabPane>
                 <TabPane tab="Map" key="2">
                     <WrapAroundMap
+                        posts = {this.state.posts}
                         googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyC4R6AN7SmujjPUIGKdyao2Kqitzr1kiRg&v=3.exp&libraries=geometry,drawing,places"
                         loadingElement={<div style={{ height: `100%` }} />}
-                        containerElement={<div style={{ height: `400px` }} />}
+                        containerElement={<div style={{ height: `600px` }} />}
                         mapElement={<div style={{ height: `100%` }} />}
+                        loadNearbyPosts={this.loadNearbyPosts}
                     />
                 </TabPane>
             </Tabs>

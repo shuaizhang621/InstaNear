@@ -1,24 +1,46 @@
 import React from 'react';
-import {withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow} from 'react-google-maps';
-import { AroundMarker} from "./AroundMarker";
+import { withScriptjs, withGoogleMap, GoogleMap } from 'react-google-maps';
+import { POS_KEY } from '../constants';
+import { AroundMarker } from './AroundMarker';
 
 class AroundMap extends React.Component {
+    reloadMarkers = () => {
+        const center = this.map.getCenter();
+        const position = { lat: center.lat(), lon: center.lng() };
+        this.props.loadNearbyPosts(position, this.getRange());
+    }
 
+    getRange = () => {
+        const google = window.google;
+        const center = this.map.getCenter();
+        const bounds = this.map.getBounds();
+        if (center && bounds) {
+            const ne = bounds.getNorthEast();
+            const right = new google.maps.LatLng(center.lat(), ne.lng());
+            return 0.000621371192 * google.maps.geometry.spherical.computeDistanceBetween(center, right);
+        }
+    }
+
+    getMapRef = (map) => {
+        this.map = map;
+        window.thismap = map;
+    }
 
     render() {
-        const arrPos = [
-            { lat: -34.297, lng: 150.644 },
-            { lat: -34.397, lng: 150.544 },
-            { lat: -34.400, lng: 150.644 },
-        ];
+        const pos = JSON.parse(localStorage.getItem(POS_KEY));
         return (
             <GoogleMap
-                defaultZoom={8}
-                defaultCenter={{ lat: -34.397, lng: 150.644 }}
+                onDragEnd={this.reloadMarkers}
+                onZoomChanged={this.reloadMarkers}
+                ref={this.getMapRef}
+                defaultZoom={11}
+                defaultCenter={{ lat: pos.lat, lng: pos.lon }}
+                defaultOptions={{ scaleControl: true }}
             >
-                {arrPos.map((pos) => {
-                    return <AroundMarker key={`${this.lat}${this.lng}`} pos={pos}/>
-                })}
+                {this.props.posts ? this.props.posts.map((post, index) =>
+                    <AroundMarker
+                        key={`${index}-${post.user}-${post.url}`}
+                        post={post}/>) : null}
             </GoogleMap>
         );
     }
